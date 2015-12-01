@@ -1,0 +1,174 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Express Chess API
+  description: >
+    #### Backend for Express Chess
+basePath: /
+parameters:
+  id:
+    name: id
+    in: path
+    description: id
+    type: integer
+    required: true
+definitions:
+  Links:
+    type: object
+  UsersCollection:
+    type: object
+    properties:
+      links:
+        $ref: '#/definitions/Links'
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/UsersResource'
+  UserDocument:
+    type: object
+    properties:
+      links:
+        $ref: '#/definitions/Links'
+      data:
+        $ref: '#/definitions/UsersResource'
+  UsersResource:
+    type: object
+    properties:
+      type:
+        type: string
+        enum:
+        - user
+      id:
+        type: integer
+      attributes:
+        $ref: '#/definitions/User'
+      links:
+        $ref: '#/definitions/Links'
+  User:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+  Error:
+    type: object
+    properties:
+      error:
+        type: array
+        items:
+          type: object
+          properties:
+            status:
+              type: string
+            source:
+              type: object
+              properties:
+                pointer:
+                  type: string
+            title:
+              type: string
+            details:
+              type: string
+paths:
+  '/users':
+    get:
+      description: >
+        Get all users
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/UsersCollection'
+    post:
+      description: >
+        Posts a new user
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/UserDocument'
+        '400':
+          description: Validation error
+          schema:
+            $ref: '#/definitions/Error'
+      parameters:
+        - name: Payload
+          in: body
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                    - user
+                  attributes:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      password:
+                        type: string
+  '/users/{id}':
+    get:
+      parameters:
+        - $ref: '#/parameters/id'
+      description: >
+        Get one user
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/UsersCollection'
+  '/users/update/{id}':
+    put:
+      parameters:
+        - $ref: '#/parameters/id'
+        - name: Payload
+          in: body
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum:
+                    - guardian
+                  attributes:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      email:
+                        type: string
+                      password:
+                        type: string 
+  '/users/delete':
+    delete:
+      description: >
+        Delete all users
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/UsersCollection'
+  '/users/delete/{id}':
+    delete:
+      parameters:
+        - $ref: '#/parameters/id'
+      description: >
+        Delete one user
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/UsersCollection'
