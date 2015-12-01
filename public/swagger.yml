@@ -53,6 +53,8 @@ definitions:
         type: string
       password:
         type: string
+      token:
+        type: string
   Error:
     type: object
     properties:
@@ -116,6 +118,8 @@ paths:
                         type: string
                       password:
                         type: string
+                      token:
+                        type: string
   '/users/{id}':
     get:
       parameters:
@@ -151,7 +155,9 @@ paths:
                       email:
                         type: string
                       password:
-                        type: string 
+                        type: string
+                      token:
+                        type: string
   '/users/delete':
     delete:
       description: >
