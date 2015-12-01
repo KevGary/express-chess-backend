@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 
+var bcrypt = require('bcrypt');
+
 //pg config
 var pg = require('pg');
 var conString = process.env.DATABASE_URL;
@@ -34,12 +36,14 @@ router.post('/users', function(req, res, next) {
       return console.error('error fetching client from pool', err);
     }
     console.log("connected to database");
-    client.query('INSERT INTO users(name, email, password) VALUES($1, $2, $3) returning id', [req.body.data.attributes.name, req.body.data.attributes.email, req.body.data.attributes.password], function(err, result) {
-      done();
-      if(err) {
-        return console.error('error running query', err);
-      }
-      res.send(result);
+    bcrypt.hash(req.body.data.attributes.password, 8, function(err, hash) {
+      client.query('INSERT INTO users(name, email, password) VALUES($1, $2, $3) returning id', [req.body.data.attributes.name, req.body.data.attributes.email, hash], function(err, result) {
+        done();
+        if(err) {
+          return console.error('error running query', err);
+        }
+        res.send(result);
+      });
     });
   });
 });
@@ -69,13 +73,15 @@ router.put('/users/update/:id', function(req, res, next) {
     console.log("connected to database");
     //query for password (storedPW)
     //compare with .compareSync(req.body.data.attributes.password, storedPW)
-    client.query('UPDATE users SET name = $2, email = $3, password = $4  WHERE id = $1', [req.params.id, req.body.data.attributes.name, req.body.data.attributes.email, req.body.data.attributes.password], function(err, result) {
-      done();
-      console.log(req.params.id)
-      if (err) {
-        return console.error('error running query', err);
-      }
-      res.send(result);
+    bcrypt.hash(req.body.data.attributes.password, 8, function(err, hash) {
+      client.query('UPDATE users SET name = $2, email = $3, password = $4  WHERE id = $1', [req.params.id, req.body.data.attributes.name, req.body.data.attributes.email, hash], function(err, result) {
+        done();
+        console.log(req.params.id)
+        if (err) {
+          return console.error('error running query', err);
+        }
+        res.send(result);
+      });
     });
   });
 });
