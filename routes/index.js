@@ -66,23 +66,34 @@ router.post('/login', function(req, res, next) {
 });
 //register
 router.post('/register', function(req, res, next) {
+  console.log(req);
   pg.connect(conString, function(err, client, done) {
     if (err) {
       return console.error('error fetching client from pool', err);
     }
     console.log("connected to database");
-    bcrypt.hash(req.body.data.attributes.password, 8, function(err, hash) {
-      client.query('INSERT INTO users(name, email, password) VALUES($1, $2, $3) returning id', [req.body.data.attributes.name, req.body.data.attributes.email, hash], function(err, result) {
+    bcrypt.hash(req.body.user.password, 8, function(err, hash) {
+      client.query('INSERT INTO users(name, email, password) VALUES($1, $2, $3) returning id', [req.body.user.name, req.body.user.email, hash], function(err, result) {
         done();
         if(err) {
           return console.error('error running query', err);
         }
-        res.send(result);
+        var token = jwt.sign({
+          id: result.rows[0].id
+        }, jwtSecret);
+        client.query('UPDATE users SET token = $2  WHERE id = $1', [result.rows[0].id, token], function(err, result) {
+          done();
+          if (err) {
+            return console.error('error running query', err);
+          }
+          res.send({
+            token: token
+          });
+        });
       });
     });
   });
 });
-
 
 //Users
 //get all

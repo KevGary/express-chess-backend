@@ -7,3 +7,8 @@ VALUES
   ( default, 'Mary Cariah', 'marycariah@example.com', 'red', null ),
   ( default, 'Tom Strongholde', 'tomstrongholde@example.com', 'blue', null ),
   ( default, 'Sally Rallycaps', 'sallyrallycaps@example.com', 'green', null );
+
+INSERT INTO
+  games
+VALUES
+  ( default, (SELECT id FROM users WHERE id = 1), (SELECT id FROM users WHERE id = 2), null, null );
