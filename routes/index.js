@@ -66,7 +66,6 @@ router.post('/login', function(req, res, next) {
 });
 //register
 router.post('/register', function(req, res, next) {
-  console.log(req);
   pg.connect(conString, function(err, client, done) {
     if (err) {
       return console.error('error fetching client from pool', err);
@@ -120,7 +119,7 @@ router.post('/users', function(req, res, next) {
     }
     console.log("connected to database");
     bcrypt.hash(req.body.data.attributes.password, 8, function(err, hash) {
-      client.query('INSERT INTO users(name, email, password) VALUES($1, $2, $3) returning id', [req.body.data.attributes.name, req.body.data.attributes.email, hash], function(err, result) {
+      client.query('INSERT INTO users(name, email, password, token) VALUES($1, $2, $3, $4) returning id', [req.body.data.attributes.name, req.body.data.attributes.email, hash, null], function(err, result) {
         done();
         if(err) {
           return console.error('error running query', err);
@@ -148,7 +147,7 @@ router.get('/users/:id', function(req, res, next) {
   });
 });
 // update one
-router.put('/users/update/:id', function(req, res, next) {
+router.put('/users/:id', function(req, res, next) {
   pg.connect(conString, function(err, client, done) {
     if (err) {
       return console.error('error fetching client from pool', err);
@@ -168,24 +167,24 @@ router.put('/users/update/:id', function(req, res, next) {
   });
 });
 //delete all
-router.delete('/users/delete', function(req, res, next) {
-  pg.connect(conString, function(err, client, done) {
-     console.log(conString)
-    if (err) {
-      return console.error('error fetching client from pool', err);
-    }
-    console.log("connected to database");
-    client.query('DELETE FROM users', function(err, result) {
-      done();
-      if (err) {
-        return console.error('error running query', err);
-      }
-      res.send(result);
-    });
-  });
-});
+// router.delete('/users', function(req, res, next) {
+//   pg.connect(conString, function(err, client, done) {
+//      console.log(conString)
+//     if (err) {
+//       return console.error('error fetching client from pool', err);
+//     }
+//     console.log("connected to database");
+//     client.query('DELETE FROM users', function(err, result) {
+//       done();
+//       if (err) {
+//         return console.error('error running query', err);
+//       }
+//       res.send(result);
+//     });
+//   });
+// });
 //delete one
-router.delete('/users/delete/:id', function(req, res, next) {
+router.delete('/users/:id', function(req, res, next) {
   pg.connect(conString, function(err, client, done) {
      console.log(conString)
     if (err) {
@@ -201,5 +200,123 @@ router.delete('/users/delete/:id', function(req, res, next) {
     });
   });
 });
+
+//-----------********-------------//
+//Games
+//get all
+router.get('/games', function(req, res, next) {
+  pg.connect(conString, function(err, client, done) {
+    if (err) {
+      return console.error('error fetching client from pool', err);
+    }
+    console.log("connected to database");
+    client.query('SELECT * FROM games', function(err, result) {
+      done();
+      if (err) {
+        return console.error('error running query', err);
+      }
+      res.send(result);
+    });
+  });
+});
+//post user
+router.post('/games', function(req, res, next) {
+  var randNum = Math.floor(Math.random() * (2 - 1 + 1)) + 1;
+  var userColor;
+  randNum == 1 ? userColor = 'w_user_id' : userColor = 'b_user_id';
+
+  pg.connect(conString, function(err, client, done) {
+    if (err) {
+      return console.error('error fetching client from pool', err);
+    }
+    console.log("connected to database");
+
+    if(!req.headers.authorization) {
+      res.send(err).end();
+    }
+    client.query('SELECT * FROM users WHERE token = $1', [req.headers.authorization.split(' ')[1]], function(err, result) {
+      if(err) {
+        return console.error('error running query', err);
+      }
+      console.log(req.headers)
+      console.log(result)
+      client.query('INSERT INTO games(w_user_id) VALUES($1) returning id', [result.rows[0].id], function(err, result) {
+        done();
+        if(err) {
+          return console.error('error running query', err);
+        }
+        res.send(result);
+      });
+    });
+  });
+});
+//get one
+router.get('/users/:id', function(req, res, next) {
+  pg.connect(conString, function(err, client, done) {
+    if (err) {
+      return console.error('error fetching client from pool', err);
+    }
+    console.log("connected to database");
+    client.query('SELECT * FROM games WHERE id = $1', [req.params.id], function(err, result) {
+      done();
+      console.log(req.params.id)
+      if (err) {
+        return console.error('error running query', err);
+      }
+      res.send(result);
+    });
+  });
+});
+// // update one
+router.put('/users/:id', function(req, res, next) {
+  pg.connect(conString, function(err, client, done) {
+    if (err) {
+      return console.error('error fetching client from pool', err);
+    }
+    console.log("connected to database");
+    //query for password (storedPW) 
+    client.query('UPDATE games SET b_user_id = $1 WHERE id = $2', [req.params.id, req.body.data.attributes.name, req.body.data.attributes.email, hash], function(err, result) {
+      done();
+      if (err) {
+        return console.error('error running query', err);
+      }
+      res.send(result);
+    });
+  });
+});
+// //delete all
+// // router.delete('/users', function(req, res, next) {
+// //   pg.connect(conString, function(err, client, done) {
+// //      console.log(conString)
+// //     if (err) {
+// //       return console.error('error fetching client from pool', err);
+// //     }
+// //     console.log("connected to database");
+// //     client.query('DELETE FROM users', function(err, result) {
+// //       done();
+// //       if (err) {
+// //         return console.error('error running query', err);
+// //       }
+// //       res.send(result);
+// //     });
+// //   });
+// // });
+// //delete one
+// router.delete('/users/:id', function(req, res, next) {
+//   pg.connect(conString, function(err, client, done) {
+//      console.log(conString)
+//     if (err) {
+//       return console.error('error fetching client from pool', err);
+//     }
+//     console.log("connected to database");
+//     client.query('DELETE FROM users WHERE id = $1',[req.params.id], function(err, result) {
+//       done();
+//       if (err) {
+//         return console.error('error running query', err);
+//       }
+//       res.send(result);
+//     });
+//   });
+// });
 
 module.exports = router;

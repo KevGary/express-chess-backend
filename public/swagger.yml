@@ -131,7 +131,6 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/UsersCollection'
-  '/users/update/{id}':
     put:
       parameters:
         - $ref: '#/parameters/id'
@@ -146,7 +145,7 @@ paths:
                   type:
                     type: string
                     enum:
-                    - guardian
+                    - user
                   attributes:
                     type: object
                     properties:
@@ -158,16 +157,6 @@ paths:
                         type: string
                       token:
                         type: string
-  '/users/delete':
-    delete:
-      description: >
-        Delete all users
-      responses:
-        '200':
-          description: Success
-          schema:
-            $ref: '#/definitions/UsersCollection'
-  '/users/delete/{id}':
     delete:
       parameters:
         - $ref: '#/parameters/id'
